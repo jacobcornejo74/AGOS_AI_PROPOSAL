@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGOS AI — Project Proposal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --font-family: 'SF Pro Display', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --bg-base: #050507;
+      --surface-glass: rgba(255, 255, 255, 0.04);
+      --surface-glass-hover: rgba(255, 255, 255, 0.07);
+      --border-glass: rgba(255, 255, 255, 0.12);
+      --border-glass-light: rgba(255, 255, 255, 0.22);
+      --dock-surface: rgba(18, 18, 22, 0.78);
+      --text-white: #FFFFFF;
+      --text-muted: rgba(255, 255, 255, 0.68);
+      --text-subtle: rgba(255, 255, 255, 0.40);
+      --anim-spring: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-family);
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-white);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 140px;
+    }
+
+    .ambient-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .ambient-blur {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(130px);
+      opacity: 0.18;
+      animation: drift 24s infinite alternate ease-in-out;
+    }
+
+    .blur-1 {
+      width: 650px;
+      height: 650px;
+      background: radial-gradient(circle, #FFFFFF 0%, #444444 80%);
+      top: -180px;
+      left: -180px;
+    }
+
+    .blur-2 {
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, #777777 0%, #111111 80%);
+      bottom: -150px;
+      right: -150px;
+      animation-duration: 28s;
+    }
+
+    @keyframes drift {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(70px, 50px) scale(1.1); }
+    }
+
+    /* Header */
+    header {
+      width: 100%;
+      max-width: 1100px;
+      margin: 24px auto 12px;
+      padding: 16px 28px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border: 1px solid var(--border-glass);
+      border-radius: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-symbol {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-symbol svg {
+      width: 20px;
+      height: 20px;
+      fill: #000000;
+    }
+
+    .brand-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--text-subtle);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .badge-theme {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-glass);
+      padding: 7px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-theme span {
+      width: 6px;
+      height: 6px;
+      background: #FFFFFF;
+      border-radius: 50%;
+      box-shadow: 0 0 6px #FFFFFF;
+    }
+
+    main {
+      width: 100%;
+      max-width: 1100px;
+      padding: 0 16px;
+      z-index: 5;
+      margin-top: 10px;
+    }
+
+    .tab-section {
+      display: none;
+      opacity: 0;
+      transform: scale(0.985) translateY(10px);
+      transition: all 0.35s var(--anim-spring);
+    }
+
+    .tab-section.active {
+      display: block;
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    .glass-card {
+      background: var(--surface-glass);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border: 1px solid var(--border-glass);
+      border-radius: 26px;
+      padding: 32px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+    }
+
+    .hero-panel {
+      padding: 40px 32px;
+    }
+
+    .section-label {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 5px 14px;
+      border-radius: 50px;
+      margin-bottom: 16px;
+    }
+
+    .section-heading {
+      font-size: 2.3rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      color: #FFFFFF;
+      margin-bottom: 14px;
+    }
+
+    .section-summary {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 860px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .sub-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 22px;
+      transition: all 0.25s var(--anim-spring);
+    }
+
+    .sub-card:hover {
+      background: var(--surface-glass-hover);
+      border-color: var(--border-glass-light);
+      transform: translateY(-2px);
+    }
+
+    .sub-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+
+    .sub-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: #FFFFFF;
+      stroke-width: 1.75;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .sub-card h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #FFFFFF;
+    }
+
+    .sub-card p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+
+    .glass-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .glass-table th, .glass-table td {
+      padding: 14px 18px;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    .glass-table th {
+      background: rgba(255, 255, 255, 0.05);
+      color: #FFFFFF;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-glass);
+    }
+
+    .glass-table td {
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+    }
+
+    .pill-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 5px 12px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .interactive-box {
+      margin-top: 24px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-glass);
+      border-radius: 18px;
+      padding: 22px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      transition: all 0.3s;
+    }
+
+    .status-normal { background: rgba(255, 255, 255, 0.08); color: #A1A1AA; border: 1px solid rgba(255, 255, 255, 0.18); }
+    .status-watch { background: rgba(255, 255, 255, 0.16); color: #E4E4E7; border: 1px solid rgba(255, 255, 255, 0.35); }
+    .status-warning { background: rgba(255, 255, 255, 0.26); color: #FFFFFF; border: 1px solid rgba(255, 255, 255, 0.6); }
+    .status-critical { background: #FFFFFF; color: #000000; border: 1px solid #FFFFFF; box-shadow: 0 0 15px rgba(255, 255, 255, 0.4); }
+
+    input[type=range] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.15);
+      outline: none;
+      accent-color: #FFFFFF;
+      cursor: pointer;
+      margin: 14px 0;
+    }
+
+    /* Floating Morphing Dock */
+    .dock-wrapper {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      width: auto;
+      max-width: 95vw;
+    }
+
+    .dock {
+      background: var(--dock-surface);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border: 1px solid var(--border-glass-light);
+      border-radius: 40px;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      position: relative;
+    }
+
+    .dock-btn {
+      position: relative;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 10px 16px;
+      border-radius: 30px;
+      color: var(--text-subtle);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: color 0.3s var(--anim-spring);
+      z-index: 2;
+      white-space: nowrap;
+    }
+
+    .dock-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      stroke-width: 1.75;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .dock-btn.active {
+      color: #FFFFFF;
+    }
+
+    .dock-indicator {
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      transition: all 0.35s var(--anim-spring);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    @media (max-width: 820px) {
+      .section-heading { font-size: 1.8rem; }
+      header { flex-direction: column; gap: 10px; align-items: flex-start; }
+      .dock-btn span { display: none; }
+      .dock-btn { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-container">
+    <div class="ambient-blur blur-1"></div>
+    <div class="ambient-blur blur-2"></div>
+  </div>
+
+  <header>
+    <div class="brand">
+      <div class="brand-symbol">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">AGOS AI</div>
+        <div class="brand-sub">Project Proposal Presentation</div>
+      </div>
+    </div>
+    <div class="badge-theme">
+      <span></span> Build the Way Forward
+    </div>
+  </header>
+
+  <main>
+
+    <div class="tab-section active" id="sec-problem">
+      <div class="glass-card hero-panel">
+        <div class="section-label">Section 01</div>
+        <h1 class="section-heading">Problem or Idea</h1>
+        <p class="section-summary">
+          Flooding is a recurring hazard across Philippine communities during periods of heavy rainfall and typhoons. Floodwaters rise rapidly, making roads impassable and endangering residents before authorities can establish complete situational awareness.
+        </p>
+      </div>
+
+      <div class="grid-3">
+        <div class="sub-card">
+          <div class="sub-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h3>Manual Observation Lag</h3>
+          <p>Disaster monitoring relies on physical ocular inspections and disparate resident phone calls, leaving substantial visibility gaps when multiple areas submerge simultaneously.</p>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-icon">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <h3>Absence of Visual Context</h3>
+          <p>Isolated water probes signal contact moisture but cannot verify road passability, vehicle clearance, surface accumulation velocity, or physical debris risks.</p>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-icon">
+            <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <h3>Delayed Emergency Action</h3>
+          <p>Without centralized, technology-assisted verification, local response units risk dispatching rescue assets reactively rather than initiating preemptive road closures.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-section" id="sec-solution">
+      <div class="glass-card hero-panel">
+        <div class="section-label">Section 02</div>
+        <h1 class="section-heading">Brief Description of Proposed Solution</h1>
+        <p class="section-summary">
+          AGOS AI is an AI-assisted flood detection and early-warning system designed to help local disaster response authorities monitor flood-prone areas through computer vision and centralized alerting.
+        </p>
+      </div>
+
+      <div class="grid-2">
+        <div class="glass-card">
+          <h2 style="font-size: 1.25rem; margin-bottom: 16px;">Core Solution Framework</h2>
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; gap: 14px;">
+              <strong style="color: var(--text-subtle);">01</strong>
+              <div><strong>Stationary Camera Emulation:</strong> A laptop webcam acts as a proof-of-concept stationary monitoring camera overlooking a road or drainage benchmark.</div>
+            </div>
+            <div style="display: flex; gap: 14px;">
+              <strong style="color: var(--text-subtle);">02</strong>
+              <div><strong>Computer Vision Inference:</strong> Model identifies visible water surfaces and calculates accumulation against reference markers in a calibrated scene.</div>
+            </div>
+            <div style="display: flex; gap: 14px;">
+              <strong style="color: var(--text-subtle);">03</strong>
+              <div><strong>Automated Risk Classification:</strong> Detected conditions are measured against predefined thresholds: Normal, Watch, Warning, or Critical.</div>
+            </div>
+            <div style="display: flex; gap: 14px;">
+              <strong style="color: var(--text-subtle);">04</strong>
+              <div><strong>Authority Decision Dashboard:</strong> Real-time risk data and photographic evidence are relayed to an authenticated command interface.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h2 style="font-size: 1.25rem; margin-bottom: 16px;">System Distinction</h2>
+          <div class="sub-card" style="margin-bottom: 12px;">
+            <h4 style="margin-bottom: 6px;">Evidence-Backed Alerting</h4>
+            <p>Rather than sending raw sensor figures, alerts deliver timestamped visual snapshots, allowing responders to verify conditions before field deployment.</p>
+          </div>
+          <div class="sub-card">
+            <h4 style="margin-bottom: 6px;">End-to-End Workflow</h4>
+            <p>Connects edge detection directly to authority-facing acknowledgment workflows, closing the loop between detection and emergency decision-making.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-section" id="sec-objectives">
+      <div class="glass-card hero-panel">
+        <div class="section-label">Section 03</div>
+        <h1 class="section-heading">General & Specific Objectives</h1>
+        <p class="section-summary">
+          Establishing technical and operational goals to develop, calibrate, and evaluate an automated early-warning prototype.
+        </p>
+      </div>
+
+      <div class="glass-card">
+        <h2 style="font-size: 1rem; margin-bottom: 8px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-subtle);">General Objective</h2>
+        <p style="font-size: 1.05rem; line-height: 1.6; color: #FFFFFF;">
+          To develop an AI-assisted flood monitoring and early-warning prototype that provides disaster response authorities with timely visual information, preliminary flood-risk assessments, and centralized alerts to support community safety and emergency decision-making.
+        </p>
+      </div>
+
+      <div class="grid-2">
+        <div class="sub-card">
+          <div class="sub-icon">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <h3>1. Computer Vision Pipeline</h3>
+          <p>Develop a vision pipeline capable of detecting surface water presence and pooling boundaries within camera video feeds.</p>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-icon">
+            <svg viewBox="0 0 24 24"><path d="M2 12h20M12 2v20M7 7l10 10"/></svg>
+          </div>
+          <h3>2. Benchmark Estimation</h3>
+          <p>Implement an edge method for tracking observed flood level variations against fixed reference marks within a calibrated scene.</p>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </div>
+          <h3>3. Configurable Risk Engine</h3>
+          <p>Establish dynamic threshold rules to automatically calculate risk tiers and trigger appropriate alert states.</p>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-icon">
+            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <h3>4. Authority Web Platform</h3>
+          <p>Develop an authenticated dashboard for viewing monitoring feeds, reviewing visual evidence, and recording response actions.</p>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-icon">
+            <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </div>
+          <h3>5. Notification Mechanism</h3>
+          <p>Implement alert logging, grouping, and notification dispatch to eliminate duplicate alert fatigue among disaster personnel.</p>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-icon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <h3>6. Empirical Evaluation</h3>
+          <p>Evaluate detection accuracy, alert delivery latency, and environmental resilience under varied simulated lighting and water states.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-section" id="sec-users">
+      <div class="glass-card hero-panel">
+        <div class="section-label">Section 04</div>
+        <h1 class="section-heading">Target Users & Beneficiaries</h1>
+        <p class="section-summary">
+          Designed specifically for operational command staff requiring verified data prior to dispatching personnel into hazard zones.
+        </p>
+      </div>
+
+      <div class="grid-2">
+        <div class="glass-card">
+          <h2 style="font-size: 1.25rem; margin-bottom: 16px;">Primary Stakeholders</h2>
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div>
+              <strong style="color: #FFFFFF;">Local Disaster Risk Reduction & Management Offices (LDRRMOs)</strong>
+              <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 4px;">Municipal and city emergency personnel managing emergency operations centers and coordinating multi-zone resource deployment.</p>
+            </div>
+            <div>
+              <strong style="color: #FFFFFF;">Barangay DRRM Committees (BDRRMC)</strong>
+              <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 4px;">Local village officials responsible for primary community advisories, neighborhood gate barriers, and initial street closures.</p>
+            </div>
+            <div>
+              <strong style="color: #FFFFFF;">Road & Drainage Maintenance Crews</strong>
+              <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 4px;">Public works crews monitoring critical catch basins, culverts, and low-lying road corridors for clearing operations.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h2 style="font-size: 1.25rem; margin-bottom: 16px;">Indirect Beneficiaries</h2>
+          <div class="sub-card" style="margin-bottom: 14px;">
+            <h4 style="margin-bottom: 6px;">Residents of Flood-Prone Communities</h4>
+            <p>Protected from dangerous road conditions through timely, validated public safety advisories and preemptive municipal actions.</p>
+          </div>
+          <div class="sub-card">
+            <h4 style="margin-bottom: 6px;">Emergency First Responders</h4>
+            <p>Ambulances and rescue units receive situational route awareness, preventing emergency vehicles from becoming submerged or stranded.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-section" id="sec-features">
+      <div class="glass-card hero-panel">
+        <div class="section-label">Section 05</div>
+        <h1 class="section-heading">Proposed Key Features</h1>
+        <p class="section-summary">
+          Core technical capabilities supporting real-time visual observation, automated risk staging, and authority workflow management.
+        </p>
+      </div>
+
+      <div class="grid-3">
+        <div class="sub-card">
+          <div class="sub-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+          </div>
+          <h3>Central Command Dashboard</h3>
+          <p>Consolidated interface displaying registered camera monitoring nodes, active risk classifications, and latest frame captures.</p>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+          </div>
+          <h3>Benchmark Risk Engine</h3>
+          <p>Automated classification engine tracking surface water elevation against reference levels into four calibrated operational tiers.</p>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <h3>Incident Evidence Logging</h3>
+          <p>Each alert captures timestamped visual frames, reference water elevation metrics, and audit entries for human verification.</p>
+        </div>
+      </div>
+
+      <div class="glass-card" style="margin-top: 18px;">
+        <h2 style="font-size: 1.25rem; margin-bottom: 8px;">Calibrated Risk Classification Matrix</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">The system maps observed camera measurements directly to predefined authority actions:</p>
+        
+        <table class="glass-table">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Observed Condition</th>
+              <th>System Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="status-badge status-normal">NORMAL</span></td>
+              <td>No significant pooling detected</td>
+              <td>Routine background monitoring</td>
+            </tr>
+            <tr>
+              <td><span class="status-badge status-watch">WATCH</span></td>
+              <td>Visible water accumulation or increasing trend</td>
+              <td>Dashboard status flag updated</td>
+            </tr>
+            <tr>
+              <td><span class="status-badge status-warning">WARNING</span></td>
+              <td>Water reaches predefined reference benchmark</td>
+              <td>Dispatches high-priority alert to authorities</td>
+            </tr>
+            <tr>
+              <td><span class="status-badge status-critical">CRITICAL</span></td>
+              <td>Water crosses configured danger threshold</td>
+              <td>Triggers urgent notification for immediate action</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="interactive-box">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong style="font-size: 0.92rem;">Simulate Risk Stage:</strong>
+            <span class="status-badge status-normal" id="simBadge">NORMAL</span>
+          </div>
+          <input type="range" id="simSlider" min="0" max="100" value="15">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-subtle);">
+            <span>0% (Dry)</span>
+            <span>35% (Watch)</span>
+            <span>65% (Warning)</span>
+            <span>100% (Critical)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-section" id="sec-tech">
+      <div class="glass-card hero-panel">
+        <div class="section-label">Section 06</div>
+        <h1 class="section-heading">Proposed Technologies & Tools</h1>
+        <p class="section-summary">
+          A modular technology stack structured for low-barrier prototyping and scalable migration to permanent field hardware.
+        </p>
+      </div>
+
+      <div class="grid-3">
+        <div class="sub-card">
+          <div class="sub-icon">
+            <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <h3>AI & Computer Vision</h3>
+          <p>Python pipeline utilizing OpenCV and lightweight convolutional/YOLO models for water region segmentation and reference benchmark tracking.</p>
+          <div class="pill-group">
+            <span class="pill">Python 3.11</span>
+            <span class="pill">OpenCV</span>
+            <span class="pill">YOLO Architecture</span>
+          </div>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-icon">
+            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          </div>
+          <h3>Backend & APIs</h3>
+          <p>Java with Spring Boot (or FastAPI) for role-based authentication, alert queue processing, telemetry ingestion, and REST endpoints.</p>
+          <div class="pill-group">
+            <span class="pill">Spring Boot</span>
+            <span class="pill">FastAPI</span>
+            <span class="pill">REST API</span>
+          </div>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-icon">
+            <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          </div>
+          <h3>Database & Dashboard</h3>
+          <p>Relational database for storing incident audit logs and camera nodes, paired with an HTML5/CSS/JavaScript responsive authority dashboard.</p>
+          <div class="pill-group">
+            <span class="pill">MySQL</span>
+            <span class="pill">HTML5 / CSS</span>
+            <span class="pill">Modern JS</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card" style="margin-top: 18px;">
+        <h3 style="font-size: 1.15rem; margin-bottom: 10px;">Prototype Hardware Specification</h3>
+        <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.6;">
+          Initial demonstration is powered entirely by a <strong>standard laptop with an integrated webcam</strong> simulating a stationary roadside monitoring node. Demonstrations can be performed using miniature roadway models, controlled water containers, or pre-recorded flood footage. Optional extensions (ESP32 microcontrollers with water-depth sensors) can be linked modularly without altering the core software architecture.
+        </p>
+      </div>
+    </div>
+
+  </main>
+
+  <div class="dock-wrapper">
+    <nav class="dock" id="proposalDock">
+      <div class="dock-indicator" id="dockIndicator"></div>
+      
+      <button class="dock-btn active" data-tab="sec-problem">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Problem</span>
+      </button>
+
+      <button class="dock-btn" data-tab="sec-solution">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <span>Solution</span>
+      </button>
+
+      <button class="dock-btn" data-tab="sec-objectives">
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <span>Objectives</span>
+      </button>
+
+      <button class="dock-btn" data-tab="sec-users">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Users</span>
+      </button>
+
+      <button class="dock-btn" data-tab="sec-features">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        <span>Features</span>
+      </button>
+
+      <button class="dock-btn" data-tab="sec-tech">
+        <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+        <span>Tech Stack</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    const dockButtons = document.querySelectorAll('.dock-btn');
+    const indicator = document.getElementById('dockIndicator');
+    const sections = document.querySelectorAll('.tab-section');
+
+    function updatePill(button) {
+      indicator.style.width = `${button.offsetWidth}px`;
+      indicator.style.left = `${button.offsetLeft}px`;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const activeBtn = document.querySelector('.dock-btn.active');
+      if (activeBtn) updatePill(activeBtn);
+    });
+
+    dockButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        dockButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        updatePill(button);
+
+        const targetId = button.getAttribute('data-tab');
+        sections.forEach(section => {
+          section.classList.remove('active');
+          if (section.id === targetId) {
+            section.classList.add('active');
+          }
+        });
+      });
+    });
+
+    window.addEventListener('resize', () => {
+      const activeBtn = document.querySelector('.dock-btn.active');
+      if (activeBtn) updatePill(activeBtn);
+    });
+
+    const simSlider = document.getElementById('simSlider');
+    const simBadge = document.getElementById('simBadge');
+
+    simSlider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value);
+      if (val < 35) {
+        simBadge.className = 'status-badge status-normal';
+        simBadge.textContent = 'NORMAL';
+      } else if (val >= 35 && val < 65) {
+        simBadge.className = 'status-badge status-watch';
+        simBadge.textContent = 'WATCH';
+      } else if (val >= 65 && val < 85) {
+        simBadge.className = 'status-badge status-warning';
+        simBadge.textContent = 'WARNING';
+      } else {
+        simBadge.className = 'status-badge status-critical';
+        simBadge.textContent = 'CRITICAL';
+      }
+    });
+  </script>
+</body>
+</html>
